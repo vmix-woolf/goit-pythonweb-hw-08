@@ -1,22 +1,18 @@
 import asyncio
 from logging.config import fileConfig
-
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
-
 from alembic import context
+from app.models.base import Base
 
-from app.database import Base
-from app.models import *
 
+target_metadata = Base.metadata
 
 config = context.config
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
-
-target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
@@ -59,7 +55,7 @@ async def run_migrations_online() -> None:
     )
 
     async with connectable.connect() as connection:
-        # Запускаємо синхронний код у асинхронному контексті
+        # Запускаємо синхронний код в асинхронному контексті
         await connection.run_sync(do_run_migrations)
 
     await connectable.dispose()
