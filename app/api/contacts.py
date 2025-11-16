@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from app.crud.contact import get_upcoming_birthdays as crud_birthdays
 from app.database import get_session
 from app.crud.contact import (
     create_contact,
@@ -8,6 +8,7 @@ from app.crud.contact import (
     get_contacts,
     update_contact,
     delete_contact,
+    search_contacts,
 )
 from app.schemas.contact import ContactCreate, ContactUpdate, ContactOut
 
@@ -43,6 +44,27 @@ async def update_contact_api(
         raise HTTPException(status_code=404, detail="Contact not found")
 
     return await update_contact(session, contact, data)
+
+@router.get("/search", response_model=list[ContactOut])
+async def search_contacts_endpoint(
+    first_name: str | None = None,
+    last_name: str | None = None,
+    email: str | None = None,
+    session: AsyncSession = Depends(get_session),
+):
+    return await search_contacts(
+        session=session,
+        first_name=first_name,
+        last_name=last_name,
+        email=email,
+    )
+
+
+@router.get("/birthdays", response_model=list[ContactOut])
+async def birthdays_endpoint(
+    session: AsyncSession = Depends(get_session),
+):
+    return await crud_birthdays(session)
 
 
 @router.delete("/{contact_id}", status_code=status.HTTP_204_NO_CONTENT)
